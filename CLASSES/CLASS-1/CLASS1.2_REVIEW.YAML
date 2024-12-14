@@ -1,0 +1,88 @@
+1) SPARK SQL:
+    - spark use the metastore of hive to store the metadata of the tables.
+    - the table is persisted in the warehouse directory.
+    - the table is stored in the hive warehouse directory.
+    - managed table: 
+        - it is stored at warehouse directory of spark.
+        - if droped, the data is also deleted.
+    - external table:
+        - it is stored at the location specified by the user.
+        - if droped, the data is not deleted. spark only deletes the metadata. example: data.csv, data.json
+
+    - most used commands of spark sql with example:
+        - from pyspark.sql import SparkSession
+        - from pyspark.sql.types import *
+        - spark.sql("show databases").show()
+        - spark.sql("use database_name")
+        - spark.sql("create database database_name")
+        - spark.sql("show tables").show()
+        - spark.sql("select * from table_name").show()
+        - spark.sql("select * from table_name where column_name='value'").show()
+        - spark.sql("select column_name from table_name").show()
+        - despachante.write.saveAsTable("table_name", mode="overwrite")
+        - despachante.write.option("path", "path").saveAsTable("table_name", mode="overwrite") -> to create a external table
+        - spart.sql("show create table table_name").show(truncate=False) 
+              -> to see if a table is external or managed. 
+                 if the table is external, the location will be shown.
+        - sparl.catalog.listTables().show() 
+            -> to see the tables in the catalog.
+            -> if the table is external, the location will be shown.
+            -> tableType: MANAGED or EXTERNAL
+    
+    - views:
+        - create a view:
+            - despachante.createOrReplaceTempView("view_name")
+            - spark.sql("select * from view_name").show()
+
+            - despachante.createOrReplaceGlobalTempView("view_name")
+            - spark.sql("select * from global_temp.view_name").show()
+
+            - sparc.sql("create or replace temp view view_name as select * from table_name")
+            - spark.sql("select * from view_name").show()
+
+            - spark.sql("create or replace global temp view view_name as select * from table_name")
+            - spark.sql("select * from global_temp.view_name").show()
+
+        - drop a view:
+            - spark.sql("drop view view_name")
+        - show views:
+            - spark.sql("show views").show()
+        - show create view:
+            - spark.sql("show create view view_name").show(truncate=False)
+    
+    - some operations:
+      - groupBy:
+          - despachantes.groupBy('nome').count().show()
+          - despachantes.groupBy('nome').sum('vendas').show()
+          - despachantes.groupBy('nome').agg(Func.sum('vendas').alias('total_sales')).show()
+          - despachantes.groupBy('nome').agg(Func.sum('vendas').alias('total_sales')).orderBy(Func.col('total_sales').desc()).show()
+          - despachantes.groupBy('nome').agg(Func.sum('vendas').alias('total_sales')).orderBy(Func.col('total_sales').desc()).limit(1).show()
+      - with joins:
+          - recshema = "idrec INT, datarec STRING, iddeps INT"
+          - reclamations = spark.read.csv("/home/tonycastellamare/Desktop/COURSES/FormaçãoSparkcomPyspark:oCursoCompleto/reclamacoes.csv", schema=recshema)
+          - reclamations.write.saveAsTable("reclamations")
+          - despachante.write.saveAsTable("despachante")
+          - spark.sql("select reclamations.*, despachantes.nome from despachantes inner join reclamations on despachantes.id = reclamations.iddeps").show()
+          - spark.sql("select reclamations.*, despachantes.nome from despachantes right join reclamations on despachantes.id = reclamations.iddeps").show()
+          - spark.sql("select reclamations.*, despachantes.nome from despachantes left join reclamations on despachantes.id = reclamations.iddeps").show()
+
+      - with joins with dataframe api:
+          - reclamations.join(despachantes, reclamations.iddeps == despachantes.id, "inner").show()
+          - reclamations.join(despachantes, reclamations.iddeps == despachantes.id, "right").show()
+          - reclamations.join(despachantes, reclamations.iddeps == despachantes.id, "left").show().select("idrec", "datarec", "iddeps", "nome").show()
+
+    - spark-sql shell, in terminal:
+          - the most used commands are the same as in the pyspark shell.
+          - to run a sql script:
+              - spark-sql -f script.sql
+          - to run a sql script and save the output in a file:
+              - spark-sql -f script.sql > output.txt
+          - show databases;
+          - use database_name;
+          - show tables;
+          - select * from table_name;
+          - select * from table_name where column_name='value';
+    
+          
+
+    

@@ -1,0 +1,76 @@
+1) CONNECTING SPARK TO ANOTHERS DATA SOURCES STEP BY STEP:
+    - POSTGRESQL:
+        - download the postgre 
+        - install the postgre
+        - sudo -u postgres psql -> to enter in the postgre with login postgres
+        - create database purchases;
+        - \dt -> to see the tables
+        - \c database_name -> to connect to the database
+        - \password -> to change the password of the user -> the same at all 
+        - sudo gedit /etc/postgresql/10/main/pg_hba.conf -> to change the authentication method to md5
+        - restart the postgre -> sudo service postgresql restart
+        - download the jdbc driver -> https://jdbc.postgresql.org/download.html
+        - connect to the postgre with pyspark by driver:
+            - pyspark --jars postgresql-42.7.4.jar -> to connect to the postgre
+            - from pyspark.sql import SparkSession
+            - Vendas_table = spark.read.format("jdbc").option("url", "jdbc:postgresql://localhost:5432/purchases").option("dbtable", "Vendas").option("user", "postgres").option("password", "darakin123-").option("driver", "org.postgresql.Driver").load() -> to connect to the postgre
+            - Vendas_table.show()
+            - vendadata = Vendas_table.select("data", "total")
+            - vendadata.show()
+            - vendadata.write.format("jdbc").option("url", "jdbc:postgresql://localhost:5432/purchases").option("dbtable", "vendadata").option("user", "postgres").option("password", "darakin123-").option("driver", "org.postgresql.Driver").save() -> to save the data in the postgre
+        
+        - conect to the mongodb with pyspark:
+            - download the mongodb
+            - install the mongodb
+            - sudo service mongod start
+            - sudo service mongod status
+            - mongosh
+
+            - mongoimport --db database_name --collection collection_name --legacy --file /path/file.json   -> to import a json file to the mongodb. use other terminal for that
+            - show dbs -> to see the databases
+            - use database_name -> to use the database
+            - show collections -> to see the collections
+            - db.collection_name.find() -> to see the data
+
+            - use packages to connect to the mongodb:
+                - pyspark --packages org.mongodb.spark:mongo-spark-connector_2.11:2.4.0 -> org.. is the package name.
+                - from pyspark.sql import SparkSession
+                - data_mongo = spark.read.format("mongo").option("uri", "mongodb://localhost:27017/database_name.collection_name").load()
+                - data_mongo.show()
+                - data_mongo.write.format("mongo").option("uri", "mongodb://localhost:27017/database_name.collection_name").save() -> to save the data in the mongodb
+
+2) HOW TO CREATE A SCRIPT OF PYSPARK:
+    - create a file with the extension .py
+    - write the code in the file
+    - run the file with the command: spark-submit file.py
+    - example:
+        - from pyspark.sql import SparkSession
+        - spark = SparkSession.builder.appName("example").getOrCreate()
+        - data = spark.read.csv("file.csv", header=True)
+        - data.show()
+        - data.write.csv("file.csv")
+        - spark.stop()
+
+    - script_pyspark2.py:
+          # now using sys.argv[1] to pass the path to the file despachantes.csv
+          import sys  # to use sys.argv[1] to pass the path to the file despachantes.csv in terminal
+
+          from pyspark.sql import SparkSession
+          from pyspark.sql.functions import *
+
+          # need to use spark-submit to run this script
+          # sys.argv[1] is the path to the file despachantes.csv in terminal for example: 
+          #       spark-submit script_pyspark2.py ../../DOWNLOAD/despachantes.csv
+
+          if __name__ == "__main__":
+              spark = SparkSession.builder.appName("Example").getOrCreate()  # Create a SparkSession
+              arq_schema = "id INT, nome STRING, status STRING, cidade STRING, vendas INT, data STRING"
+              despachantes = spark.read.csv(sys.argv[1], header=False, schema=arq_schema)
+              despachantes.show()
+              despachantes.printSchema()
+              calculo = despachantes.select("data").groupBy("data").count()
+              calculo.write.format("console").save()
+              spark.stop()
+              
+    
+    
