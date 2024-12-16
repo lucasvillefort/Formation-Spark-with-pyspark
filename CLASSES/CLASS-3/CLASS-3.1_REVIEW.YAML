@@ -1,0 +1,26 @@
+1) MACHINE LEARNING WITH SPARK STEP BY STEP:
+    - 1.1) SPARK.MLLIB AND SPARK.ML:
+        - ALL INDEPENDENT VARIABLES SHOULD BE AT SAME COLUMN
+        - ALL DEPENDENT VARIABLES SHOULD BE AT SAME COLUMN
+        - all variables should be numeric -> categorical variables turn into numeric with one hot encoding
+        - pipelines: 
+            transformers -> turn dataframe into another dataframe
+            estimators -> fit datagrame to create a transformer
+            pipeline -> conect transformers and estimators
+            parametrs -> set parameters for transformers and estimators
+2) MACHINE LEARNING WITH SPARK STEP BY STEP:
+    - example:
+        from pyspark.ml.regresion import LinearRegression, RandomForestRegressor
+        from pyspark.ml.evaluation import RegressionEvaluator -> evaluate the model for regression
+        from pyspark.ml.feature import VectorAssembler -> assemble all independent variables into one column
+
+        # importing data:
+        car_temp = spark.read.csv('/home/tonycastellamare/Desktop/COURSES/FormaçãoSparkcomPyspark:oCursoCompleto/Carros.csv', header=True, inferSchema=True, sep=';')
+        car_temp.show()
+        car = car_temp.select('Consumo', 'Cilindros', "Cilindradas", "HP")
+        car.show()
+        # creating a vector with all independent variables:
+        vector_caracteristics = VectorAssembler(inputCols=['Consumo', 'Cilindros', "Cilindradas"], outputCol='features')
+        # transforming the dataframe:
+        car = vector_caracteristics.transform(car)
+        car.show()
