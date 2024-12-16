@@ -1,0 +1,12 @@
+1) SPARK STRUTURED STREAMING:
+    1.1) OVERVIEW: 
+        - spark structured streaming is a scalable and fault-tolerant stream processing engine built on the spark sql engine
+        - it allows to process data in real time
+    1.2) THE DIFFERENCE BETWEEN PROCESSING DATA IN BATCH AND STREAMING:
+        - batch processing: process data in fixed-size files or time intervals. it has a beginning and an end:
+            FOR EXAMPLE:
+              OLAP -> STAGING -> DW -> REPORTS
+
+        - streaming processing: process data in real time. It is used when the data is generated in real time. it never ends:
+            FOR EXAMPLE:
+              E_COMMERCE -> PROCESSING -> REPORTS AND ALERTS
