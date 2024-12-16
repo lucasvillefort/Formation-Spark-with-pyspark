@@ -8,14 +8,14 @@
             estimators -> fit datagrame to create a transformer
             pipeline -> conect transformers and estimators
             parametrs -> set parameters for transformers and estimators
-2) MACHINE LEARNING WITH SPARK STEP BY STEP:
+2) MACHINE LEARNING REGRESSION WITH SPARK STEP BY STEP:
     - example:
         from pyspark.ml.regresion import LinearRegression, RandomForestRegressor
         from pyspark.ml.evaluation import RegressionEvaluator -> evaluate the model for regression
         from pyspark.ml.feature import VectorAssembler -> assemble all independent variables into one column
 
         # importing data:
-        car_temp = spark.read.csv('/home/tonycastellamare/Desktop/COURSES/FormaçãoSparkcomPyspark:oCursoCompleto/Carros.csv', header=True, inferSchema=True, sep=';')
+        car_temp = spark.read.csv('/home/tonycastellamare/Desktop/Spark/download/Carros.csv', header=True, inferSchema=True, sep=';')
         car_temp.show()
         car = car_temp.select('Consumo', 'Cilindros', "Cilindradas", "HP")
         car.show()
@@ -24,3 +24,102 @@
         # transforming the dataframe:
         car = vector_caracteristics.transform(car)
         car.show()
+        
+        # splitting the data:
+        car_train, car_test = car.randomSplit([0.7, 0.3])
+        print(car_train.count()) -> show the number of rows in the train dataframe
+        print(car_test.count()) -> show the number of rows in the test dataframe
+
+        # creating the model:
+        lr = LinearRegression(featuresCol='features', labelCol='HP')
+        lr_model = lr.fit(car_train)
+        lr_model.coefficients -> show the coefficients of the model
+        lr_model.intercept -> show the intercept of the model
+
+        # predicting the test dataframe:
+        lr_predictions = lr_model.transform(car_test)
+        lr_predictions.show()
+
+        # evaluating the model:
+        evaluator = RegressionEvaluator(predictionCol='prediction', labelCol='HP', metricName='rmse') -> the more higher the rmse, the worst the model
+        rmse = evaluator.evaluate(lr_predictions)
+        print(rmse)
+
+        # creating a random forest model:
+        rf = RandomForestRegressor(featuresCol='features', labelCol='HP')
+        rf_model = rf.fit(car_train)
+        rf_predictions = rf_model.transform(car_test)
+        rmse2 = evaluator.evaluate(rf_predictions)
+        print(rmse2)
+
+
+3) MACHINE LEARNING CLASSIFICATION WITH SPARK STEP BY STEP:
+    - example:
+        from pyspark.ml.classification import  DecisionTreeClassifier
+        from pyspark.ml.evaluation import  BinaryClassificationEvaluator 
+        from pyspark.ml.feature import  RFormula -> RFormula is used to create a formula to predict the dependent variable
+
+        # importing data:
+        churn = spark.read.csv('/home/tonycastellamare/Desktop/Spark/download/Churn.csv', header=True, inferSchema=True, sep=';')
+        churn.show()
+
+        # creating the formula:
+        # Rformula turn categorical variables into numeric variables and vectorize all independent variables
+        formula = RFormula(formula='Exited ~ .', featuresCol='features', labelCol='label', handleInvalid="skip") -> labelCol is the class column. the . means all independent variables that rest in the dataframe
+        churn_transformed = formula.fit(churn).transform(churn).select('features', 'label') -> it will create a new column with the vectorized independent variables
+
+        # splitting the data:
+        churn_train, churn_test = churn_transformed.randomSplit([0.7, 0.3])
+
+        # creating the model:
+        dt = DecisionTreeClassifier(featuresCol='features', labelCol='label')
+
+        # fitting the model:
+        dt_model = dt.fit(churn_train)
+            
+        # predicting the test dataframe:
+        dt_predictions = dt_model.transform(churn_test)
+        dt_predictions.show()
+
+        # evaluating the model:
+        evaluator = BinaryClassificationEvaluator(rawPredictionCol='prediction', labelCol='label', metricName='areaUnderROC') -> the more higher the areaUnderROC, the better the model
+        area = evaluator.evaluate(dt_predictions)
+        print(area) -> the more higher the area, the better the model
+        
+
+4) MACHINE LEARNING USING PIPELINE WITH SPARK FOR REGRESSION MODEL:
+        - example:
+            from pyspark.ml import Pipeline
+            from pyspark.ml.feature import VectorAssembler
+            from pyspark.ml.regression import LinearRegression
+            from pyspark.ml.evaluation import RegressionEvaluator
+
+            # importing data:
+            car_temp = spark.read.csv('/home/tonycastellamare/Desktop/Spark/download/Carros.csv', header=True, inferSchema=True, sep=';')
+            car_temp.show()
+            car = car_temp.select('Consumo', 'Cilindros', "Cilindradas", "HP")
+            car.show()
+            # creating a vector with all independent variables:
+            vector_caracteristics = VectorAssembler(inputCols=['Consumo', 'Cilindros', "Cilindradas"], outputCol='features')
+
+            # creating the model:
+            lr = LinearRegression(featuresCol='features', labelCol='HP')
+
+            # creating the pipeline:
+            pipeline = Pipeline(stages=[vector_caracteristics, lr])
+
+            # splitting the data:
+            car_train, car_test = car.randomSplit([0.7, 0.3])
+
+            # fitting the model:
+            pipeline_model = pipeline.fit(car_train)
+
+            # predicting the test dataframe:
+            pipeline_predictions = pipeline_model.transform(car_test)
+            pipeline_predictions.show()
+
+            # evaluating the model:
+            evaluator = RegressionEvaluator(predictionCol='prediction', labelCol='HP', metricName='rmse') -> the more higher the rmse, the worst the model
+            rmse = evaluator.evaluate(pipeline_predictions)
+            print(rmse)
+            
