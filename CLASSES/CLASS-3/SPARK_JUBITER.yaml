@@ -1,0 +1,27 @@
+1) USING SPARK IN JUBYTER NOTE:
+    pip install jupyter
+    pip install findspark # to find the spark in the system
+
+    # to start the jupyter notebook
+    jupyter notebook
+
+    # to start the pyspark in jupyter notebook
+    import findspark # to import the findspark
+    findspark.init() # to find the spark in the system
+    import pyspark # to import the pyspark
+    from pyspark.sql import SparkSession ...
+    
+
+2) TURN DATAFRAME FROM PANDAS TO SPARK:
+    import pandas as pd
+
+    churn = pd.read_csv('/home/tonycastellamare/Desktop/Spark/download/Churn.csv', sep=';')
+    churn.head()
+
+    # we need to create a context variable of spark
+    from pyspark.sql import SparkSession
+    spark = SparkSession.builder.appName('churn').getOrCreate()
+
+    # to turn the dataframe from pandas to spark
+    churn_spark = spark.createDataFrame(churn) # to turn the dataframe from pandas to spark
+    churn_spark.show(5)

@@ -1,0 +1,80 @@
+1) PARTICITION OF SPARK:
+    - a partition is a part of the dataframe that is distributed in several node in a cluster
+    - we can partition a dataframe by using the repartition() - in disk or coalesce() method - in memory
+    - shuffling is the process of moving data between partitions in a cluster
+    - bucketing is the process of dividing data into buckets based on a column value. it is ideal for columns with high cardinality (many unique values)
+      it can be used with partitioning to optimize the performance.
+    - review partition:
+        it will create several folder based on the column that we want to partition from the dataframe used
+
+    1.2) EXAMPLE OF PARTITIONING:
+        
+        - pyspark
+        - spark.sql('show databases').show()
+        - spark.sql('create database desp').show()
+        - spark.sql('use desp').show()
+
+        # create a dataframe
+        churn = spark.read.csv('/home/tonycastellamare/Desktop/Spark/download/Churn.csv', header=True, inferSchema=True, sep=';')
+        churn.show(5)
+
+        # to safe the dataframe in stardart datahouse of spark by partitioning in stored in disk in parquet format
+        churn.write.partitionBy("Geography").saveAsTable('churn_partitioned')
+        spark.sql('select * from churn_partitioned').show(5)
+      
+    1.3) BUCKETING:
+        - bucketing is the process of dividing data into buckets based on a column value. it is ideal for columns with high cardinality (many unique values)
+          it will create several files not folder based on the column that we want to partition from the dataframe used
+        
+        - pyspark
+        - spark.sql('show databases').show()
+        - spark.sql('create database desp').show()
+        - spark.sql('use desp').show()
+
+        # create a dataframe
+        churn = spark.read.csv('/home/tonycastellamare/Desktop/Spark/download/Churn.csv', header=True, inferSchema=True, sep=';')
+        churn.show(5)
+
+        # to safe the dataframe in stardart datahouse of spark by partitioning in stored in disk in parquet format
+        # 3 is the number of bucket that we want to create, but it can used less or more
+        churn.write.bucketBy(3,"Geography").saveAsTable('churn_bucketed')
+
+        spark.sql('select * from churn_bucketed').show(5)
+
+
+2) CACHING and PERSIST:
+    - cache is a way to keep some data in memory to avoid recomputation to be used in the future
+    - persist is a way to keep some data in memory or disk to avoid recomputation to be used in the future
+    - all method for persisting data are: 
+        - MEMORY_ONLY -> it is standard for RDD
+        - MEMORY_AND_DISK -> it is standard for dataframe
+        - MEMORY_ONLY_SER
+        - MEMORY_AND_DISK_SER
+        - DISK_ONLY
+        - MEMORY_ONLY_2 -> number 2 is the number of replication in nodes
+        - MEMORY_AND_DISK_2
+        - OFF_HEAP
+
+    - Examples:
+        from pyspark import StorageLevel
+
+        spark.sql('use desp').show()
+        spark.sql('show tables').show()
+
+        dataframe = spark.sql('select * from despachantes')
+        dataframe.show(5)
+
+        dataframe.storageLevel 
+
+        # to cache the dataframe in memory
+        dataframe.cache()
+        dataframe.storageLevel -> StorageLevel(True, True, False, False, 1) -> it means that the dataframe is cached in memory
+
+        # to persist the dataframe in memory and disk
+        dataframe.persist(StorageLevel.DISK_ONLY) # it is the same as dataframe.persist(StorageLevel.MEMORY_AND_DISK)
+
+        dataframe.unpersist() # to remove the dataframe from memory or disk
+
+        dataframe.persist(StorageLevel.DISK_ONLY) # to persist the dataframe in disk
+
+        

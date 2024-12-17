@@ -10,3 +10,76 @@
         - streaming processing: process data in real time. It is used when the data is generated in real time. it never ends:
             FOR EXAMPLE:
               E_COMMERCE -> PROCESSING -> REPORTS AND ALERTS
+    
+    1.3) SPARK STRUCTURED STREAMING ARCHITECTURE:
+        - source: where the data comes from
+        - sink: where the data goes to
+        - type of conceits:
+            - batch: data is processed in fixed-size files or time intervals ->
+            - streaming: data is processed in real time -> it is a mode of spark structured streaming
+            - micro-batch: data is processed in small batches -> it is a mode of spark structured streaming
+        - output modes:
+            - append: only the new rows are written to the sink
+            - update: only the rows that have changed are written to the sink
+            - complete: all the rows are written to the sink
+        - triggers:
+            - processing time: the time interval between each batch
+            - event time: the time interval between each batch is determined by the event time of the data
+            - forms:
+                - continuous: the data is processed as soon as it arrives
+                - once: the data is processed only once
+                - time: the data is processed at regular time intervals
+                - default: the data is processed at regular time intervals
+            - to stop the stream: stop the stream by calling the stop method on the stream object. example: stream.stop()
+        - checkpointdir: the directory where the checkpoint files are stored. it is used to recover the stream from a failure
+        - method of write and read:
+            - writeStream: writes the stream to the sink
+            - readStream: reads the stream from the source
+        - for data from source not suported:
+            - use foreachBatch method with read and write stream or foreach method with read and write stream
+
+    1.4) EXAMPLES:
+        1.4.1) with postgres with script called streaming.py:
+            from pyspark.sql import SparkSession
+            if __name__ == "__main__":
+                spark = SparkSession.builder.appName("StructuredStreaming").getOrCreate()
+                #create schema:
+                json_schema = "nome STRING, postagem STRING, data INT"
+                #read stream in target directory: it will monitor the directory and read the files that are created in it
+                df = spark.readStream.json("/home/tonycastellamare/Desktop/Spark/teststreaming/", schema=json_schema)
+                
+                # create a temporary state session directory:
+                directory = "/home/tonycastellamare/Desktop/Spark/temp/"
+
+                stcall = df.writeStream.format("console").outputMode("append").trigger(processingTime="5 seconds").option("checkpointLocation", directory).start() # directory is the checkpoint directory created before
+                stcall.awaitTermination() # wait for the stream to finish
+                
+
+            - in terminal -> spark-submit streaming.py -> to run the script
+            - if we stop the stream and come back to run it again, it wont read the data that was already read. it will read only the new data because of the checkpoint directory temp created before
+        
+        1.4.2) check new file and post it into a database created in postgres:
+            - in postgres: 
+                create database posts
+                \c posts
+            from pyspark.sql import SparkSession
+            if __name__ == "__main__":
+            spark = SparkSession.builder.appName("StructuredStreaming2").getOrCreate()
+            #create schema:
+            json_schema = "nome STRING, postagem STRING, data INT"
+            #read stream in target directory:
+            df = spark.readStream.json("/home/tonycastellamare/Desktop/Spark/teststreaming/", schema=json_schema)
+                            
+            # create a temporary state session directory:
+            directory = "/home/tonycastellamare/Desktop/Spark/temp/" -> it is matter for the stream to know where to start reading the data from the checkpoint directory
+
+            def postgres_update(dataframe, batchId):
+                dataframe.write.format("jdbc").option("url", "jdbc:postgresql://localhost:5432/posts").option("dbtable", "posts").option("user", "postgres").option("password", "darakin123-").option("driver", "org.postgresql.Driver").mode("append").save()
+
+            
+            stcall = df.writeStream.foreachBatch(postgres_update).outputMode("append").trigger(processingTime="5 seconds").option("checkpointLocation", directory).start() # directory is the checkpoint directory created before
+            stcall.awaitTermination() # wait for the stream to finish
+
+            - in terminal:
+                spark-submit --jars /home/tonycastellamare/Desktop/Spark/driversforspark/postgresql-42.7.4.jar streaming2.py
+
