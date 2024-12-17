@@ -25,3 +25,31 @@
     # to turn the dataframe from pandas to spark
     churn_spark = spark.createDataFrame(churn) # to turn the dataframe from pandas to spark
     churn_spark.show(5)
+
+    # to turn the dataframe from spark to pandas
+    churn_pd = churn_spark.toPandas()
+    churn_pd.head()
+
+3) USING THE KOALAS LIBRARY TO NOT MAKE MODIFICATIONS IN THE CODE:
+    # to install the koalas library
+    pip install koalas
+
+    import databricks.koalas as ks
+
+    # dataframe from csv
+    churn = ks.read_csv('/home/tonycastellamare/Desktop/Spark/download/Churn.csv', sep=';')
+    churn.head()
+
+    # to turn the dataframe from pandas to spark
+    churn_koalas = ks.from_pandas(churn)
+    churn_koalas.head()
+
+    # to turn the dataframe from spark to pandas
+    churn_pd = churn_koalas.to_pandas()
+    churn_pd.head()
+
+
+4) SPARK UI:
+    how to access SPARK UI:
+        -  http://localhost:4040/jobs/ # to access we need inialize the spark on terminal first
+
