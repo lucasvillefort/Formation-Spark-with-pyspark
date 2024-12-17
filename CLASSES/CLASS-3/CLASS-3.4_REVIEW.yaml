@@ -53,3 +53,35 @@
     how to access SPARK UI:
         -  http://localhost:4040/jobs/ # to access we need inialize the spark on terminal first
 
+
+5) SPARK CLUSTER OVERVIEW TO CREATE MASTER AND WORKER:
+    # to create a master
+    cd /opt/spark/conf/
+    cp spark-env.sh.template spark-env.sh
+    nano spark-env.sh
+    spark-env.sh:
+     SPARK_MASTER_HOST='192.168.56.101' # ip of the master machine to create the cluster
+    
+    cd /opt/spark/sbin/
+    ./start-master.sh # to start the master
+
+    # access the 10.0.2.15:8080 to see the master -> localhost is the ip of the master machine
+
+    # to create a worker
+    ./start-slave.sh spark://192.168.56.101:7077 # localhost is the ip of the master machine
+
+    # setting of the slaves:
+    cd /opt/spark/conf/
+    cp spark-env.sh.template spark-env.sh
+    nano spark-env.sh
+    spark-env.sh:
+        SPARK_MASTER_HOST='192.168.56.101'
+    
+    cd /opt/spark/sbin/
+    ./start-slave.sh spark://192.168.56.101:7077 # 192.168.. is the master machine ip and 7077 is the port of the master that it here will access there
+
+
+6) EXECUTING THE SPARK IN THE CLUSTER:
+    # we need to manage the spark in the cluster. some are standalone, yarn, mesos
+    pyspark --master spark://192.168.56.101:7077 # now we are executing the spark in the cluster
+
